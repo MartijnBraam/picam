@@ -2,6 +2,7 @@ import threading
 
 import mmap
 import numpy as np
+from PIL import Image
 from picamera2.previews import NullPreview
 
 try:
@@ -55,6 +56,7 @@ class Connector:
         for i in range(0, self.num_overlays):
             layer = self._resman.reserve_overlay_plane(self._crtc, format=pykms.PixelFormat.ABGR8888)
             layer.set_prop("pixel blend mode", 1)
+            layer.set_prop("alpha", 0xFFFF)
             self.overlay.append(layer)
             self.overlay_dirty[i] = False
         self.ready = True
@@ -158,7 +160,12 @@ class DRMOutput(NullPreview):
         if output is None:
             output = 'DSI-1'
         conn = self.conn[output]
-        h, w, channels = overlay.shape
+
+        if isinstance(overlay, Image.Image):
+            w, h = overlay.size
+            channels = 4
+        else:
+            h, w, channels = overlay.shape
 
         init = False
         if num not in conn.overlay_fb or conn.overlay_fb[num] is None:
@@ -170,6 +177,9 @@ class DRMOutput(NullPreview):
             conn.overlay_fb[num] = pykms.DumbFramebuffer(self.card, w, h, "AB24")
 
         with mmap.mmap(conn.overlay_fb[num].fd(0), w * h * 4, mmap.MAP_SHARED, mmap.PROT_WRITE) as mm:
-            mm.write(np.ascontiguousarray(overlay).data)
+            if isinstance(overlay, Image.Image):
+                mm.write(overlay.tobytes())
+            else:
+                mm.write(np.ascontiguousarray(overlay).data)
 
         conn.overlay_dirty[num] = True
