@@ -165,6 +165,14 @@ class Camera:
         self.ui.zebra.set(enable)
         self.out_dsi.overlay_opacity(self.OVERLAY_ZEBRA, 1.0 if enable else 0.0)
 
+    def enable_false_color(self, enable):
+        self.ui.false_color.set(enable)
+        self.out_dsi.overlay_opacity(self.OVERLAY_FALSE, 1.0 if enable else 0.0)
+
+    def enable_focus_assist(self, enable):
+        self.ui.focus_assist.set(enable)
+        self.out_dsi.overlay_opacity(self.OVERLAY_FOCUS, 1.0 if enable else 0.0)
+
     def update_preview(self, request):
         ordering = []
         toggles = {
@@ -189,6 +197,10 @@ class Camera:
                 self.drm.set_overlay(clip_mat, output=self.output_ui, num=self.OVERLAY_ZEBRA)
                 self.last_update[task] = 0
             elif task == 'false':
+                grey = mapped.array[0:self.preview_h]
+                middle_grey = cv2.inRange(grey, self.config.monitor.exposure_helper_min, self.config.monitor.exposure_helper_max)
+                middle_mat = cv2.merge((self.mat_black, self.mat_white, self.mat_black, middle_grey))
+                self.drm.set_overlay(middle_mat, output=self.output_ui, num=self.OVERLAY_FALSE)
                 self.last_update[task] = 0
             elif task == 'focus':
                 if self.update_idx == 0:

@@ -12,6 +12,8 @@ class MonitorConfig:
         self.touchscreen_flip_x = False
         self.touchscreen_flip_y = False
         self.touchscreen_res = (1280, 720)
+        self.exposure_helper_min = 61
+        self.exposure_helper_max = 70
 
 
 class OutputConfig:
@@ -69,8 +71,11 @@ class Config:
                         elif isinstance(cur, float):
                             new = float(new)
                         elif isinstance(cur, tuple):
-                            res = new.split("x")
-                            new = (int(res[0]), int(res[1]))
+                            if len(cur) == 2:
+                                res = new.split("x")
+                                new = (int(res[0]), int(res[1]))
+                            else:
+                                new = tuple(int(new[i:i + 2], 16) for i in (0, 2, 4))
                         setattr(ob, attr, new)
 
     def save_config(self):
@@ -84,7 +89,10 @@ class Config:
                 attr = key.replace("_", "-")
                 val = data[key]
                 if isinstance(val, tuple):
-                    val = f"{val[0]}x{val[1]}"
+                    if len(val) == 2:
+                        val = f"{val[0]}x{val[1]}"
+                    elif len(val) == 3:
+                        val = "#{0:02x}{1:02x}{2:02x}".format(*val)
                 parser.set(section, attr, str(val))
         with open(self._path, "w") as handle:
             parser.write(handle)
