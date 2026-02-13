@@ -31,8 +31,8 @@ class StateNumber:
 
 class TapEvent:
     def __init__(self, x, y):
-        self.x = y
-        self.y = x
+        self.x = x
+        self.y = y
 
 
 class Widget:
@@ -209,7 +209,26 @@ class Layout:
                     break
 
 
-def _input_thread(path, queue):
+def _touch_transform(config, x, y):
+    flip_x = False
+    flip_y = False
+    if config.monitor.touchscreen_rotate == 90:
+        x, y = y, x
+    elif config.monitor.touchscreen_rotate == 180:
+        flip_x = True
+    elif config.monitor.touchscreen_rotate == 270:
+        x, y = y, x
+        flip_x = True
+    flip_x ^= config.monitor.touchscreen_flip_x
+    flip_y ^= config.monitor.touchscreen_flip_y
+    if flip_x:
+        x = config.touchscreen_res[0] - x
+    if flip_y:
+        y = config.touchscreen_res[1] - y
+    return x, y
+
+
+def _input_thread(path, queue, config):
     device = evdev.InputDevice(path)
     last_x = 0
     last_y = 0
@@ -223,16 +242,17 @@ def _input_thread(path, queue):
         if event.type == evdev.ecodes.EV_KEY and evdev.ecodes.BTN_TOUCH:
             if event.value == 1:
                 # Touch down
-                queue.put(TapEvent(last_x, last_y))
+                pos = _touch_transform(config, last_x, last_y)
+                queue.put(TapEvent(pos[0], pos[1]))
             else:
                 # Touch up
                 pass
 
 
-def HandleInputs(input_queue):
+def HandleInputs(input_queue, config):
     devices = [evdev.InputDevice(path) for path in evdev.list_devices()]
     for device in devices:
         print(device.path, device.name, device.phys)
-        t = threading.Thread(target=_input_thread, args=(device.path, input_queue))
+        t = threading.Thread(target=_input_thread, args=(device.path, input_queue, config))
         t.daemon = True
         t.start()

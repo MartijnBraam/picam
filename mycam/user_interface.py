@@ -6,10 +6,11 @@ from mycam.toolkit import StateNumber, Layout, GuidesButton, HandleInputs
 
 
 class UI:
-    def __init__(self, width, height, camera):
+    def __init__(self, width, height, camera, config):
         self.width = width
         self.height = height
         self.cam = camera
+        self.config = config
 
         self.screens = {}
         self.create_screen("main")
@@ -17,7 +18,7 @@ class UI:
         self.paint_hook = None
         self.state = None
 
-        self.fps = StateNumber(60)
+        self.fps = StateNumber(30)
         self.shutter = StateNumber()
         self.gain = StateNumber()
         self.tc = StateNumber()
@@ -32,7 +33,7 @@ class UI:
         self._create_main_layout()
 
     def start(self):
-        HandleInputs(self.input_queue)
+        HandleInputs(self.input_queue, self.config)
 
     def _create_main_layout(self):
         l: Layout = self.screens["main"]

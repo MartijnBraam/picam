@@ -10,6 +10,7 @@ from picamera2.outputs import PyavOutput
 import numpy as np
 
 from mycam.api import ControlAPI
+from mycam.config import Config
 from mycam.drmoutput import DRMOutput
 from mycam.edid import check_edid
 from PIL import Image, ImageDraw, ImageFont
@@ -30,9 +31,11 @@ class Camera:
         self.preview_w = 1
         self.preview_h = 1
 
-        self.output_hdmi = "HDMI-A-1"
-        self.output_ui = "HDMI-A-2"
-        self.ui_size = (1280, 720)
+        self.config = Config("/boot/camera.ini")
+
+        self.output_hdmi = self.config.output.output
+        self.output_ui = self.config.monitor.output
+        self.ui_size = self.config.monitor.mode
 
         # Set initial camera mode and controls
         preview_config = self.cam.create_preview_configuration(main={
@@ -53,12 +56,13 @@ class Camera:
         self.cam.configure(preview_config)
 
         # Enable DRM output of the camera stream to the HDMI output and the DSI display
-        self.drm = DRMOutput(1920, 1080)
-        self.out_hdmi = self.drm.use_output(self.output_hdmi, 1920, 1080, 60, 1)
+        self.drm = DRMOutput(self.config.output.mode[0], self.config.output.mode[1])
+        self.out_hdmi = self.drm.use_output(self.output_hdmi, self.config.output.mode[0], self.config.output.mode[1],
+                                            60, 1)
         self.out_dsi = self.drm.use_output(self.output_ui, self.ui_size[0], self.ui_size[1], None, 4)
 
         # Configure the hardware H.264 encoder
-        self.encoder = H264Encoder(10_000_000)
+        self.encoder = H264Encoder(self.config.encoder.bitrate_int)
         self.stream = PyavOutput("rtsp://127.0.0.1:8554/cam", format="rtsp")
         self.encoder.output = self.stream
 
@@ -73,7 +77,7 @@ class Camera:
         self.font_value = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 30)
 
         # Image buffers for overlay drawing
-        self.hdmi_overlay = Image.new("RGBA", (1920, 64), (0, 0, 0, 0))
+        self.hdmi_overlay = Image.new("RGBA", (self.config.output.mode[0], 64), (0, 0, 0, 0))
 
         self.api = ControlAPI(self)
 
@@ -85,7 +89,7 @@ class Camera:
         self.thresh_zebra = 230
         self.thresh_under = 18
 
-        self.ui = UI(self.ui_size[0], self.ui_size[1], self)
+        self.ui = UI(self.ui_size[0], self.ui_size[1], self, self.config)
 
         def on_paint(buf):
             self.drm.set_overlay(buf, output=self.output_ui, num=self.OVERLAY_UI)
@@ -103,7 +107,7 @@ class Camera:
         self.cam.start()
         self.cam.start_encoder(self.encoder)
 
-        self.out_hdmi.overlay_position(0, 0, 0, 1920, 64)
+        self.out_hdmi.overlay_position(0, 0, 0, self.config.output.mode[0], 64)
 
         # Set initial state to keep consistency with the API
         self.cam.set_controls({"AeEnable": True, "AwbEnable": True})
