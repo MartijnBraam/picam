@@ -85,7 +85,7 @@ class Camera:
         self.thresh_zebra = 230
         self.thresh_under = 18
 
-        self.ui = UI(self.ui_size[0], self.ui_size[1])
+        self.ui = UI(self.ui_size[0], self.ui_size[1], self)
 
         def on_paint(buf):
             self.drm.set_overlay(buf, output=self.output_ui, num=self.OVERLAY_UI)

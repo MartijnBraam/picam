@@ -1,50 +1,23 @@
 import datetime
 import math
+import queue
 
-from PIL import ImageFont, ImageDraw, Image
-
-
-class StateNumber:
-    def __init__(self, initial=None):
-        self.value = None
-        self.last_value = None
-        self.changed = False
-
-        if initial is not None:
-            self.value = initial
-            self.changed = True
-
-    def set(self, value):
-        self.value = value
-        if self.value != self.last_value:
-            self.last_value = self.value
-            self.changed = True
-
-    def once(self):
-        changed = self.changed
-        self.changed = False
-        return changed
-
-    def __str__(self):
-        return str(self.value)
+from mycam.toolkit import StateNumber, Layout, GuidesButton, HandleInputs
 
 
 class UI:
-    def __init__(self, width, height):
+    def __init__(self, width, height, camera):
         self.width = width
         self.height = height
-
-        self.font = ImageFont.truetype("/usr/share/fonts/truetype/liberation/DejaVuSans.ttf", 15)
-        self.font_heading = ImageFont.truetype("/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf", 15)
-        self.font_value = ImageFont.truetype("/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf", 26)
+        self.cam = camera
 
         self.screens = {}
         self.create_screen("main")
+        self.active_screen = "main"
         self.paint_hook = None
         self.state = None
-        self.debug = False
 
-        self.fps = 60
+        self.fps = StateNumber(60)
         self.shutter = StateNumber()
         self.gain = StateNumber()
         self.tc = StateNumber()
@@ -55,85 +28,49 @@ class UI:
         self.false_color = StateNumber(False)
         self.guides = StateNumber("thirds")
 
-        self.color_active = (0, 128, 255, 200)
-
-        self.value_rect = Image.new("RGBA", (100, 32), (255, 255, 255, 255))
+        self.input_queue = queue.Queue()
+        self._create_main_layout()
 
     def start(self):
-        self.render_main_screen()
+        HandleInputs(self.input_queue)
 
-    def _paint(self, name):
-        self.paint_hook(self.screens[name])
+    def _create_main_layout(self):
+        l: Layout = self.screens["main"]
 
-    def draw_value(self, ctx: ImageDraw.ImageDraw, x, width, name, value):
-        ctx.has_changed = True
-        tox = x + width
-        if self.debug:
-            ctx.rectangle((x - 1, 0, tox, 64), fill=(255, 0, 0, 255))
-        ctx.rectangle((x, 1, tox - 1, 63), fill=(0, 0, 0, 0))
-        ctx.text((x + 1, 10), name, font=self.font_heading, fill=(255, 255, 255, 255), stroke_fill=(0, 0, 0, 255),
-                 stroke_width=1)
-        ctx.text((x + 1, 24), str(value), font=self.font_value, fill=(255, 255, 255, 255), stroke_fill=(0, 0, 0, 255),
-                 stroke_width=1)
+        l.add_label(Layout.TOPLEFT, 80, "FPS", "{}", self.fps, None, "left")
+        l.add_label(Layout.TOPLEFT, 100, "Shutter", "1/{}", self.shutter, None, "left")
+        l.add_label(Layout.TOPLEFT, 100, "Gain", "{} dB", self.gain, None, "left")
+        l.add_label(Layout.TOPMIDDLE, 200, "Timecode", "{}", self.tc, None, "middle")
+        l.add_label(Layout.TOPRIGHT, 100, "Camera ID", "{}", self.camera_id, None, "left")
 
-    def draw_button(self, ctx: ImageDraw.ImageDraw, x, width, name, active):
-        ctx.has_changed = True
-        fill = (0, 0, 0, 0)
-        stroke = 1
-        if active:
-            fill = self.color_active
-        ctx.rectangle((x, self.height - 64, x + width, self.height), fill=fill)
+        l.add_button(Layout.BOTTOMLEFT, 130, "Zebra", self.zebra, lambda v: self.cam.enable_zebra(v))
+        l.add_button(Layout.BOTTOMLEFT, 130, "Focus", self.focus_assist, None)
+        l.add_button(Layout.BOTTOMLEFT, 130, "Exp.", self.false_color, None)
+        l.add_widget(Layout.BOTTOMLEFT, GuidesButton(130, "Guides", self.guides, lambda v: self.cycle_guides()))
 
-        _, _, w, h = ctx.textbbox((0, 0), str(name), font=self.font_value)
-        ctx.text((x + ((width - w) / 2), self.height - 46), str(name), font=self.font_value, fill=(255, 255, 255, 255),
-                 stroke_fill=(0, 0, 0, 255), stroke_width=stroke)
+        l.compute()
 
-    def draw_text(self):
-        pass
+    def cycle_guides(self):
+        if self.guides.value == "thirds":
+            self.guides.set(False)
+        elif not self.guides.value:
+            self.guides.set("thirds")
 
     def create_screen(self, name):
-        self.screens[name] = Image.new("RGBA", (self.width, self.height), (0, 0, 0, 0))
-
-    def _draw(self, name) -> ImageDraw.ImageDraw:
-        return ImageDraw.Draw(self.screens[name])
-
-    def render_main_screen(self):
-        ctx = self._draw("main")
-        ctx.has_changed = False
-        self.draw_value(ctx, 10, 100, "FPS", self.fps)
-        if self.shutter.once():
-            self.draw_value(ctx, 120, 100, "Shutter", f"1/{self.shutter}")
-        if self.gain.once():
-            self.draw_value(ctx, 240, 100, "Gain", f"{self.gain} dB")
-
-        if self.tc.once():
-            self.draw_value(ctx, 400, 200, "TC", self.tc)
-
-        if self.camera_id.once():
-            self.draw_value(ctx, 650, 100, "Camera ID", self.camera_id)
-
-        if self.zebra.once():
-            self.draw_button(ctx, 10, 120, "Zebra", self.zebra.value)
-        if self.focus_assist.once():
-            self.draw_button(ctx, 140, 120, "Focus", self.focus_assist.value)
-        if self.false_color.once():
-            self.draw_button(ctx, 270, 120, "Exposure", self.false_color.value)
-
-        if self.guides.once():
-            self.draw_button(ctx, 400, 120, self.guides.value.title(), self.guides.value != "none")
-            if self.guides.value == "thirds":
-                ctx.line((self.width / 3, 64, self.width / 3, self.height - 65), (128, 128, 128, 128))
-                ctx.line((self.width / 3 * 2, 64, self.width / 3 * 2, self.height - 65), (128, 128, 128, 128))
-                ctx.line((0, self.height / 3, self.width, self.height / 3), (128, 128, 128, 128))
-                ctx.line((0, self.height / 3 * 2, self.width, self.height / 3 * 2), (128, 128, 128, 128))
-
-        if ctx.has_changed:
-            self._paint("main")
+        self.screens[name] = Layout(self.width, self.height)
 
     def update_state(self, state):
         self.state = state
+
+        while not self.input_queue.empty():
+            event = self.input_queue.get()
+            self.screens[self.active_screen].tap(event.x, event.y)
+
         tc = datetime.datetime.fromtimestamp(self.state["SensorTimestamp"] / 1000000000, tz=datetime.timezone.utc)
         self.tc.set(tc.strftime("%H:%M:%S"))
         self.shutter.set(int(1000000 / state["ExposureTime"]))
         self.gain.set(int(round(10 * math.log10(state["AnalogueGain"]))))
-        self.render_main_screen()
+
+        buf = self.screens[self.active_screen].render()
+        if buf is not None:
+            self.paint_hook(buf)
