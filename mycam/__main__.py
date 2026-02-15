@@ -90,7 +90,7 @@ class Camera:
         self.thresh_zebra = 230
         self.thresh_under = 18
 
-        self.ui = UI(self.ui_size[0], self.ui_size[1], self, self.config)
+        self.ui = UI(self.ui_size[0], self.ui_size[1], self, self.config, self.cam.camera_controls)
 
         def on_paint(buf):
             self.drm.set_overlay(buf, output=self.output_ui, num=self.OVERLAY_UI)
@@ -181,6 +181,19 @@ class Camera:
         one_to_one = 1920 / self.out_dsi.width
         self.out_dsi.zoom = one_to_one * 2 if enable else 1.0
         self.ui.zoom.set(self.out_dsi.zoom)
+
+    def enable_auto_exposure(self, enabled):
+        self.ui.ae.set(enabled)
+        self.cam.set_controls({"AeEnable": enabled})
+
+    def set_ev(self, compensation):
+        self.ui.ec.set(compensation)
+        self.cam.set_controls({"ExposureValue": compensation})
+
+    def set_gain(self, gain):
+        self.enable_auto_exposure(False)
+        self.ui.gain.set(gain)
+        self.cam.set_controls({"AnalogueGain": gain})
 
     def update_preview(self, request):
         ordering = []
