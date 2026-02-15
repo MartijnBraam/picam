@@ -20,6 +20,7 @@ class OutputConfig:
     def __init__(self):
         self.output = "HDMI-A-1"
         self.mode = (1920, 1080)
+        self.framerate = 60
 
 
 class EncoderConfig:
