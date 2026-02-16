@@ -1,0 +1,81 @@
+@bg: #282828;
+@bgpanel: #2d2d2d;
+
+* {
+  box-sizing: border-box;
+}
+
+body, td, th {
+  font-family: -apple-system, BlinkMacSystemFont, avenir next, avenir, segoe ui, helvetica neue, Adwaita Sans, Cantarell, Ubuntu, roboto, noto, helvetica, arial, sans-serif;
+  font-size: 11pt;
+}
+
+body, html {
+  background: @bg;
+  color: white;
+  padding: 0;
+  margin: 0;
+  height: 100%;
+}
+
+header {
+  border-top: 1px solid #303030;
+  border-bottom: 1px solid #000;
+  background: #262626;
+  background: linear-gradient(180deg, #262626 0%, #181818 100%);
+  padding: 10px;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+}
+
+hsplit {
+  display: flex;
+  flex-direction: row;
+  flex: 1;
+}
+
+vsplit {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+panel {
+  flex: 1;
+  padding: 10px;
+  min-width: 400px;
+}
+
+iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+group {
+  display: grid;
+  width: 100%;
+  grid-template-columns: 1fr 20%;
+  grid-template-rows: repeat(2, 1fr);
+
+  label {
+    display: block;
+    font-weight: bold;
+    grid-area: ~"1/1/2/3";
+  }
+
+  input[type=range] {
+    grid-area: ~"2/1/3/2";
+  }
+
+  span {
+    grid-area: ~"2/2/3/3";
+  }
+
+  input[type=text] {
+    grid-area: ~"2/1/3/3";
+  }
+}

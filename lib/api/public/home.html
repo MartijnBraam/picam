@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>MNCAM</title>
+    <link rel="stylesheet" type="text/css" href="/css/style.css">
+</head>
+<body>
+<header>
+    <h1>MNCAM</h1>
+</header>
+<hsplit>
+    <panel>
+        <div id="mode"></div>
+
+        <group>
+            <label for="whitebalance">White balance</label>
+            <input type="range" min="1000" max="10000" id="whitebalance"><span id="whitebalanceLabel"></span>
+        </group>
+        <group>
+            <label for="gain">Gain</label>
+            <input type="range" min="1" max="22" id="gain"><span id="gainLabel"></span>
+        </group>
+        <group>
+            <label for="shutter">Shutter</label>
+            <input type="range" min="1" max="300" id="shutter"><span id="shutterLabel"></span>
+        </group>
+
+
+    </panel>
+    <iframe src="http://192.168.2.34:8889/cam/"></iframe>
+</hsplit>
+<script src="/js/control.js"></script>
+</body>
+</html>
