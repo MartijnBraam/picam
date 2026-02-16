@@ -25,10 +25,10 @@ class UI:
         self.max_shutter = StateNumber(self.config.sensor.framerate * 10)
 
         ctrl_min, ctrl_max, ctrl_default = limits["AnalogueGain"]
-        self.max_gain = ctrl_max
+        self.max_gain = StateNumber(ctrl_max)
         ctrl_min, ctrl_max, ctrl_default = limits["ExposureValue"]
-        self.min_ec = ctrl_min
-        self.max_ec = ctrl_max
+        self.min_ec = StateNumber(ctrl_min)
+        self.max_ec = StateNumber(ctrl_max)
 
         # Camera state
         self.fps = StateNumber(self.config.sensor.framerate)
@@ -126,7 +126,7 @@ class UI:
 
         # Gain control panel
         gain_panel = VBox(name="gain")
-        gain_panel.add(Slider("Gain", self.gain, min=1.0, max=self.max_gain, handler=lambda v: self.cam.set_gain(v),
+        gain_panel.add(Slider("Gain", self.gain, min=StateNumber(1.0), max=self.max_gain, handler=lambda v: self.cam.set_gain(v),
                               background=(0, 0, 0, 80)))
         gain_panel.compute()
         l.add_widget(Layout.MIDDLE, gain_panel)
