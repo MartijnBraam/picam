@@ -1,0 +1,9 @@
+[Unit]
+Description=Camera
+
+[Service]
+WorkingDirectory=/opt/picam
+ExecStart=/usr/bin/python3 -m mycam
+
+[Install]
+WantedBy=multi-user.target

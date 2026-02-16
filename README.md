@@ -10,6 +10,20 @@ latency camera feed going from the sensor to HDMI while showing an configuration
 * Max output is 1080p30 when the hardware H.264 encoder is used (and it cannot be disabled at the moment)
 * Higher resolutions are limited by the HQ sensor
 
+## Installation
+
+The easiest way to install it is by installing Raspian Trixie to an SD card, make sure no graphical user interface
+is starting by either uninstalling it or disabling all related systemd services. Then put the picam application
+in place:
+
+```shell-session
+$ apt install python3-opencv python3-evdev python3-picamera2 python3-pillow
+$ cd /opt
+$ git clone https://github.com/martijnbraam/picam
+$ cp /opt/picam/systemd/camera.service /etc/systemd/system/camera.service
+$ systemctl start camera
+```
+
 ## Configuration
 
 The application reads a .ini config file from /boot/camera.ini to do a full headless initial setup. This config file
