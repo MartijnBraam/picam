@@ -222,7 +222,8 @@ class ToggleRow(Widget):
         if not self.state.once(self) and not self._dirty.once():
             return
         ctx.rectangle((self.x, self.y, self.x2, self.y2), fill=self.color_clear)
-        ctx.text((self.x + 10, self.y + 16), str(self.text), font=self.FONT)
+        ctx.text((self.x + 10, self.y + 16), str(self.text), font=self.FONT, stroke_fill=(0, 0, 0, 255),
+                 stroke_width=1)
         if self.text_width is None:
             _, _, w, _ = ctx.textbbox((0, 0), str(self.text), font=self.FONT)
             self.text_width = w + 10
@@ -251,10 +252,70 @@ class ToggleRow(Widget):
             print("Button pressed, but no handler")
 
 
+class RadioRow(Widget):
+    FONT = ImageFont.truetype("/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf", 26)
+
+    def __init__(self, text, state, handler, options, background=None, text_width=None, state_cmp=None):
+        super().__init__()
+        self.hexpand = True
+        self.text = text
+        self.state = state
+        self.options = options
+        self.state_cmp = state_cmp
+        self.handler = handler
+        self.height = 64
+        self.color_clear = background
+        self.text_width = text_width
+        self._regions = []
+
+    def render(self, ctx):
+        if not self.state.once(self) and not self._dirty.once():
+            return
+        ctx.rectangle((self.x, self.y, self.x2, self.y2), fill=self.color_clear)
+        ctx.text((self.x + 10, self.y + 16), str(self.text), font=self.FONT, stroke_fill=(0, 0, 0, 255),
+                 stroke_width=1)
+        if self.text_width is None:
+            _, _, w, _ = ctx.textbbox((0, 0), str(self.text), font=self.FONT)
+            self.text_width = w + 10
+
+        if self.state_cmp is not None:
+            active = self.state_cmp(self.state.value)
+        else:
+            active = self.state.value
+        fill = self.color_active if active else (0, 0, 0, 200)
+
+        pad = 6
+        hpad = 24
+        offset = self.x + self.text_width + 10
+        self._regions = []
+        for key in self.options:
+            label = self.options[key]
+            _, _, w, _ = ctx.textbbox((0, 0), str(label), font=self.FONT)
+            width = w + hpad + hpad
+            if key == self.state.value:
+                ctx.rounded_rectangle((offset, self.y + pad, offset + width, self.y2 - pad), 32, fill=fill)
+            ctx.text((offset + hpad, self.y + 16), str(label), font=self.FONT, stroke_fill=(0, 0, 0, 255),
+                     stroke_width=1)
+            self._regions.append((offset, offset + width, key))
+            offset += width
+
+    def tap(self, x, y):
+        for start, end, key in self._regions:
+            if start <= x < end:
+                val = key
+                break
+        else:
+            return
+        if self.handler is not None:
+            self.handler(val)
+        else:
+            print("Button pressed, but no handler")
+
+
 class Slider(Widget):
     FONT = ImageFont.truetype("/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf", 26)
 
-    def __init__(self, text, state, handler, background=None, text_width=None, min=0, max=100):
+    def __init__(self, text, state, handler, background=None, text_width=None, min=None, max=None):
         super().__init__()
         self.hexpand = True
         self.text = text
@@ -265,6 +326,10 @@ class Slider(Widget):
         self.text_width = text_width
         self.thickness = 2
         self.radius = 10
+        if min is None:
+            min = StateNumber(0)
+        if max is None:
+            max = StateNumber(100)
         self.min = min
         self.max = max
         self.active = True
@@ -276,14 +341,15 @@ class Slider(Widget):
             return
 
         ctx.rectangle((self.x, self.y, self.x2, self.y2), fill=self.color_clear)
-        ctx.text((self.x + 10, self.y + 16), str(self.text), font=self.FONT)
+        ctx.text((self.x + 10, self.y + 16), str(self.text), font=self.FONT, stroke_fill=(0, 0, 0, 255),
+                 stroke_width=1)
         if self.text_width is None:
             _, _, w, _ = ctx.textbbox((0, 0), str(self.text), font=self.FONT)
             self.text_width = w + 10
 
         slide_start = self.x + self.text_width + 10
         slide_len = self.x2 - 10 - slide_start
-        pos = ((self.state.value - self.min) / (self.max - self.min)) * slide_len
+        pos = ((self.state.value - self.min.value) / (self.max.value - self.min.value)) * slide_len
         vcenter = self.y + (self.height / 2)
 
         bc = self.color_active if self.active else self.color_inactive
@@ -308,14 +374,14 @@ class Slider(Widget):
     def tap(self, x, y):
         slide_start = self.text_width + 10
         slide_len = self.x2 - 10 - (self.x + slide_start)
-        pos = ((self.state.value - self.min) / (self.max - self.min)) * slide_len
+        pos = ((self.state.value - self.min.value) / (self.max.value - self.min.value)) * slide_len
 
         if x < slide_start:
             return
         x -= slide_start
         x /= slide_len
-        x *= self.max - self.min
-        x += self.min
+        x *= self.max.value - self.min.value
+        x += self.min.value
         if self.handler is not None:
             self.handler(x)
 

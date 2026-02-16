@@ -3,7 +3,7 @@ import math
 import queue
 
 from mycam.toolkit import StateNumber, Layout, GuidesButton, HandleInputs, TapEvent, DoubleTapEvent, VBox, Slider, \
-    ToggleRow, Guides
+    ToggleRow, Guides, RadioRow
 
 
 class UI:
@@ -21,8 +21,8 @@ class UI:
         self.state = None
 
         # Fixed info
-        self.min_shutter = self.config.sensor.framerate
-        self.max_shutter = self.config.sensor.framerate * 10
+        self.min_shutter = StateNumber(self.config.sensor.framerate)
+        self.max_shutter = StateNumber(self.config.sensor.framerate * 10)
 
         ctrl_min, ctrl_max, ctrl_default = limits["AnalogueGain"]
         self.max_gain = ctrl_max
@@ -130,6 +130,18 @@ class UI:
                               background=(0, 0, 0, 80)))
         gain_panel.compute()
         l.add_widget(Layout.MIDDLE, gain_panel)
+
+        # FPS control panel
+        fps_panel = VBox(name="fps")
+        fps_panel.add(RadioRow("Framerate", self.fps, options={
+            24: "24",
+            25: "25",
+            30: "30",
+            60: "60",
+        }, handler=lambda v: self.cam.set_fps(v),
+                               background=(0, 0, 0, 80)))
+        fps_panel.compute()
+        l.add_widget(Layout.MIDDLE, fps_panel)
 
         # Auto exposure controls panel
         ae_panel = VBox(name="ae")

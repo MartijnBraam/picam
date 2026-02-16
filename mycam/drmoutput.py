@@ -72,6 +72,13 @@ class Connector:
         val = int(float(0xFFFF) * opacity)
         self.overlay[idx].set_prop("alpha", val)
 
+    def set_fps(self, fps):
+        mode = self._conn.get_default_mode()
+        mode.hdisplay = self.width
+        mode.vdisplay = self.height
+        mode.vrefresh = fps
+        self._crtc.set_mode(self._conn, mode)
+
 
 class DRMOutput(NullPreview):
     def __init__(self, width, height):
@@ -154,7 +161,8 @@ class DRMOutput(NullPreview):
                     src_h = int(height / conn.zoom)
                     src_x = int(width - src_w) // 2
                     src_y = int(height - src_h) // 2
-                ctx.add_plane(conn._plane, drmfb, conn._crtc, (src_x, src_y, src_w, src_h), (0, 0, conn.width, conn.height))
+                ctx.add_plane(conn._plane, drmfb, conn._crtc, (src_x, src_y, src_w, src_h),
+                              (0, 0, conn.width, conn.height))
 
         for cname in self.conn:
             conn = self.conn[cname]

@@ -185,6 +185,12 @@ class Camera:
         et = int(1 / shutter * 1000000)
         self.cam.set_controls({"ExposureTime": et})
 
+    def set_fps(self, fps):
+        self.ui.fps.set(fps)
+        self.cam.set_controls({"FrameRate": fps})
+        self.out_hdmi.set_fps(fps)
+        self.ui.min_shutter.set(fps)
+
     def update_preview(self, request):
         ordering = []
         toggles = {
