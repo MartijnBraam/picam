@@ -3,8 +3,11 @@ package ipc
 import (
 	"bytes"
 	"encoding/binary"
+	"errors"
 	"fmt"
 	"net"
+	"os"
+	"time"
 )
 
 type IPCClient struct {
@@ -12,8 +15,18 @@ type IPCClient struct {
 }
 
 func New() (*IPCClient, error) {
+	fname := "/tmp/sensor-control"
+	for _ = range 60 {
+		if _, err := os.Stat(fname); errors.Is(err, os.ErrNotExist) {
+			fmt.Println("Control socket does not exist yet, waiting")
+			time.Sleep(1 * time.Second)
+		} else {
+			break
+		}
+	}
+
 	conn, err := net.DialUnix("unixpacket", nil, &net.UnixAddr{
-		Name: "/tmp/sensor-control",
+		Name: fname,
 		Net:  "unixpacket",
 	})
 	if err != nil {
