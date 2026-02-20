@@ -137,6 +137,9 @@ msg "Running installer script"
 sudo cp install.sh "$WORK"/rootfs/opt/mncam/install.sh
 sudo chroot "$WORK"/rootfs sh -c "cd /opt/mncam && ./install.sh image"
 
+msg "Enabling SSH"
+sudo chroot "$WORK"/rootfs systemctl enable ssh
+
 trap - EXIT
 cleanup
 
