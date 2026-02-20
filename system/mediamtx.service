@@ -4,7 +4,7 @@ After=network-online.target
 Wants=network-online.target
 
 [Service]
-ExecStart=/usr/local/bin/mediamtx /etc/mediamtx.yml
+ExecStart=/usr/local/bin/mediamtx /etc/mediamtx/mediamtx.yml
 
 [Install]
 WantedBy=multi-user.target

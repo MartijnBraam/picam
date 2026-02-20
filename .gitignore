@@ -176,3 +176,5 @@ cython_debug/
 
 /mncam_api
 /pkg
+/workdir
+*.img.xz

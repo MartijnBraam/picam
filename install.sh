@@ -9,6 +9,9 @@ GREEN="\033[1;32m"
 YELLOW="\033[1;33m"
 BLUE="\033[1;34m"
 
+APTOPT=
+SYSTEMDOPT=--now
+
 msg() {
 	local prompt="$GREEN>>>${NORMAL}"
 	printf "${prompt} %s\n" "$1" >&2
@@ -31,7 +34,7 @@ debian() {
   done
 
   if [ "$run_apt" = true ] ; then
-    apt install "$@"
+    apt $APTOPT install "$@"
   fi
 }
 
@@ -40,8 +43,14 @@ if [ ! -f "/etc/debian_version" ]; then
    exit 1
 fi
 
+if [ "$1" == "image" ]; then
+  msg "Running inside the image creation tool"
+  APTOPT=-qy
+  SYSTEMDOPT=
+fi
+
 msg "Installing dependencies available in Debian Trixie"
-debian python3-opencv python3-evdev python3-picamera2 python3-pil haproxy golang wget
+debian python3-opencv python3-evdev python3-picamera2 python3-pil python3-humanfriendly fonts-liberation haproxy golang wget
 
 msg "Build the API server..."
 make all
@@ -62,14 +71,14 @@ install -m644 system/camera.service /etc/systemd/system/camera.service
 sed -i '/^WorkingDirectory=/c\WorkingDirectory='$PWD /etc/systemd/system/camera.service
 install -m644 system/camera-api.service /etc/systemd/system/camera-api.service
 sed -i '/^ExecStart=/c\ExecStart='$PWD/mncam_api /etc/systemd/system/camera-api.service
-install -m644 system/haproxy.cfg /etc/haproxy.cfg
+install -m644 system/haproxy.cfg /etc/haproxy/haproxy.cfg
 mkdir -p /etc/mediamtx
 install -m644 system/mediamtx.yml /etc/mediamtx/mediamtx.yml
 install -m644 system/mediamtx.service /etc/systemd/system/mediamtx.service
 
 msg "Enabling the camera services..."
-systemctl enable --now camera
-systemctl enable --now camera-api
+systemctl enable $SYSTEMDOPT camera
+systemctl enable $SYSTEMDOPT camera-api
 
 ip=$(ip -o route get to 1.2.3.4 | sed -n 's/.*src \([0-9.]\+\).*/\1/p')
 echo "Installation complete"
