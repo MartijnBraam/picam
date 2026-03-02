@@ -206,6 +206,10 @@ class UI:
 
     def cycle_guides(self):
         if self.guides.value == "thirds":
+            self.guides.set("cross")
+        elif self.guides.value == "cross":
+            self.guides.set("safe")
+        elif self.guides.value == "safe":
             self.guides.set(False)
         elif not self.guides.value:
             self.guides.set("thirds")

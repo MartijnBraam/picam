@@ -157,18 +157,46 @@ class Guides(Widget):
         self.state = state
         self.hexpand = True
 
+    def _rect(self, ctx, size, w):
+        width = self.layout_width
+        height = self.layout_height
+        x1 = width * (1 - size)
+        x2 = width * size
+        y1 = height * (1 - size)
+        y2 = height * size
+
+        ctx.line((x1, max(64, y1), x1, min(height - 65, y2)), (128, 128, 128, 128), width=w)
+        ctx.line((x2, max(64, y1), x2, min(height - 65, y2)), (128, 128, 128, 128), width=w)
+
+        if y1 > 64:
+            ctx.line((x1, y1, x2, y1), (128, 128, 128, 128), width=w)
+        if y2 < height - 65:
+            ctx.line((x1, y2, x2, y2), (128, 128, 128, 128), width=w)
+
     def render(self, ctx):
         if not self.state.once(self) and not self._dirty.once():
             return
         width = self.layout_width
         height = self.layout_height
+        ctx.rectangle((0, 64, width, height - 65), (0, 0, 0, 0))
+        ctx.has_changed = True
+        w = 2
+
         if self.state.value == "thirds":
-            ctx.line((width / 3, 64, width / 3, height - 65), (128, 128, 128, 128))
-            ctx.line((width / 3 * 2, 64, width / 3 * 2, height - 65), (128, 128, 128, 128))
-            ctx.line((0, height / 3, width, height / 3), (128, 128, 128, 128))
-            ctx.line((0, height / 3 * 2, width, height / 3 * 2), (128, 128, 128, 128))
-        else:
-            ctx.rectangle((0, 64, width, height - 65), (0, 0, 0, 0))
+            ctx.line((width / 3, 64, width / 3, height - 65), (128, 128, 128, 128), width=w)
+            ctx.line((width / 3 * 2, 64, width / 3 * 2, height - 65), (128, 128, 128, 128), width=w)
+            ctx.line((0, height / 3, width, height / 3), (128, 128, 128, 128), width=w)
+            ctx.line((0, height / 3 * 2, width, height / 3 * 2), (128, 128, 128, 128), width=w)
+        elif self.state.value == "cross":
+            ctx.line((width / 2, 64, width / 2, height - 65), (128, 128, 128, 128), width=w)
+            ctx.line((0, height / 2, width, height / 2), (128, 128, 128, 128), width=w)
+        elif self.state.value == "safe":
+            self._rect(ctx, 0.93, w)
+            self._rect(ctx, 0.89, w)
+            # 4/3 safe guide
+            old = height / 3 * 4
+            ctx.line((old, 64, old, height - 65), (128, 128, 128, 128), width=w)
+            ctx.line((width - old, 64, width - old, height - 65), (128, 128, 128, 128), width=w)
 
 
 class Label(Button):
