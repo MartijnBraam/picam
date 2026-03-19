@@ -5,12 +5,25 @@ display_width=120.7;
 case_width=display_width+16;
 case_height=94;
 case_screw_offset=5.2;
+logo_inset=3;
 
 split_pos=32.9;
 
 include<components.scad>;
 
 
+module logo() {
+    difference() {
+    linear_extrude(height=5)
+        import("logo.svg");
+        
+        translate([2, 2, 0])
+        scale([0.98, 0.98, 1])
+        linear_extrude(height=5)
+        import("logo.svg");
+
+    }
+}
 
 module display() {
     thick=5;
@@ -83,13 +96,21 @@ module top() {
 module case() {
     
     // Front
-    intersection() {
-        rotate([90, 0, 0])
-            mount_cs(width=case_width, height=case_height);
+    difference() {
+        intersection() {
+            rotate([90, 0, 0])
+                mount_cs(width=case_width, height=case_height);
+            
+            translate([case_width/2, 0, case_height/2])
+            rotate([-90, 0, 0])
+                shell([case_width, case_height, 30], 10);
+        }
         
-        translate([case_width/2, 0, case_height/2])
-        rotate([-90, 0, 0])
-            shell([case_width, case_height, 30], 10);
+        // Logo inset
+        translate([23.4, logo_inset, 1.5])
+        rotate([90, 0, 0])
+        scale([0.45, 0.45 , 1])
+            logo();
     }
     
     // Sides
@@ -98,14 +119,26 @@ module case() {
         rotate([-90, 0, 0])
             shell([case_width, case_height, 100], 10, 8);
         
-        translate([-20, 60, -20])
-        rotate([5, 0, 0])
-            cube([case_width+40, 100, case_height+40]);
+        // Logo inset
+        translate([23.4, logo_inset, 1.5])
+        rotate([90, 0, 0])
+        scale([0.45, 0.45 , 1])
+            logo();
         
+        translate([-20, 50.5, -20])
+        rotate([0, 0, 0])
+            cube([case_width+40, 100, case_height+40]);
+                
         // Side I/O
         translate([-5, 30, case_height/2-1])
         rotate([90, 0, 90])
             shell([27, 55, 30], 6);
+        
+        // Audio I/O
+        translate([case_width-20, 23.1, case_height/2-1])
+        rotate([90, 0, 90])
+            shell([30, 70, 30], 6);
+
         
         // Top I/O
         translate([case_width/2+17, 30, case_height-15])
@@ -125,7 +158,7 @@ module case() {
     // Back
     if ($preview && show_modules) {
         translate([(case_width-display_width)/2, 50, 85])
-        rotate([0, 96, -90])
+        rotate([0, 90, -90])
             waveshare_with_pi();
     }
     
@@ -178,6 +211,7 @@ module displaymount(r) {
 module case_b() {
     difference() {
         union() {
+            
             difference() {
                 case();
                 
@@ -188,18 +222,21 @@ module case_b() {
                 translate([case_width/2, split_pos+17.49, (dfh/2)+7])
                     cube([display_width+1, 35, dfh], center=true);
             }
-            rotate([5, 0, 0])
+            
+            rotate([0, 0, 0])
             union() {
-                translate([(case_width/2)-(display_width/2)+4, 44.5, 7.5])
+                zo = 5;
+                yo = 36.5;
+                translate([(case_width/2)-(display_width/2)+4, yo, 7.5+zo])
                 rotate([90, 0, 0])
                     displaymount(270);
-                translate([(case_width/2)+(display_width/2)-4, 44.5, 7.5])
+                translate([(case_width/2)+(display_width/2)-4, yo, 7.5+zo])
                 rotate([90, 0, 0])
                     displaymount(0);
-                translate([(case_width/2)-(display_width/2)+4, 43.5, 75.5])
+                translate([(case_width/2)-(display_width/2)+4, yo, 75.5+zo])
                 rotate([90, 0, 0])
                     displaymount(180);
-                translate([(case_width/2)+(display_width/2)-4, 43.5, 75.5])
+                translate([(case_width/2)+(display_width/2)-4, yo, 75.5+zo])
                 rotate([90, 0, 0])
                     displaymount(90);
 
@@ -236,8 +273,10 @@ module split() {
     }
 }
 
-//case_a();
-
+case_a();
+//case_b();
+/*
 translate([0,0 , 60])
 rotate([-95, 0, 0])
 case_b();
+*/

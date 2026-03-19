@@ -11,3 +11,8 @@ mncam_api: $(SRCFILES) Makefile
 .PHONY: install
 install: all
 	install -Dm755 mncam_api $(DESTDIR)$(PREFIX)/bin/mncam_api
+
+overlay: overlay/proto2.dtbo
+
+%.dtbo: %.dts
+	@dtc -@ -O dtb -o $@ $<
