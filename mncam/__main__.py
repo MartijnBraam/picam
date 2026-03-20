@@ -1,6 +1,9 @@
 import time
+import threading
+import queue
 import cv2
 import libcamera
+from PIL import Image, ImageDraw
 
 from libcamera import ColorSpace
 from picamera2 import Picamera2, MappedArray
@@ -9,6 +12,7 @@ from picamera2.outputs import PyavOutput
 import numpy as np
 
 from mncam.api import ControlAPI
+from mncam.audio import audiothread
 from mncam.config import Config
 from mncam.drmoutput import DRMOutput
 from mncam.edid import check_edid
@@ -22,6 +26,7 @@ class Camera:
     OVERLAY_FOCUS = 2
     OVERLAY_UI = 3
     OVERLAY_HISTOGRAM = 4
+    OVERLAY_AUDIO = 5
 
     def __init__(self):
         self.cam = Picamera2()
@@ -29,6 +34,7 @@ class Camera:
         self.edid = None
         self.preview_w = 1
         self.preview_h = 1
+        self.audio_levels = queue.Queue()
 
         self.config = Config("/boot/camera.ini")
 
@@ -59,7 +65,7 @@ class Camera:
         self.drm = DRMOutput(self.config.output.mode[0], self.config.output.mode[1])
         self.out_hdmi = self.drm.use_output(self.output_hdmi, self.config.output.mode[0], self.config.output.mode[1],
                                             self.config.output.framerate, 1)
-        self.out_dsi = self.drm.use_output(self.output_ui, self.ui_size[0], self.ui_size[1], None, 5)
+        self.out_dsi = self.drm.use_output(self.output_ui, self.ui_size[0], self.ui_size[1], None, 6)
 
         # Configure the hardware H.264 encoder
         if self.config.encoder.enabled:
@@ -115,6 +121,7 @@ class Camera:
 
         self.out_hdmi.overlay_position(0, 0, 0, self.config.output.mode[0], 64)
         self.out_dsi.overlay_position(self.OVERLAY_HISTOGRAM, 64, self.config.monitor.mode[1] - 200, 256, 100)
+        self.out_dsi.overlay_position(self.OVERLAY_AUDIO, 64, self.config.monitor.mode[1] - 232, 256, 32)
         self.out_hdmi.overlay_opacity(0, 0.0)
 
         # Set initial state to keep consistency with the API
@@ -122,6 +129,13 @@ class Camera:
         self.preview_w, self.preview_h = self.cam.stream_configuration("lores")["size"]
         self.create_mask_images()
         self.ui.start()
+
+        self.levels = Image.new("RGBA", (256, 32), "black")
+
+
+        at = threading.Thread(target=audiothread, args=(self.audio_levels,))
+        at.daemon = True
+        at.start()
 
     def create_mask_images(self):
         self.mat_black = np.zeros((self.preview_h, self.preview_w), np.uint8)
@@ -139,6 +153,8 @@ class Camera:
         self.api.do_work()
         self.ui.update_state(self.cam.capture_metadata())
         self.ui_hdmi.update_state(self.cam.capture_metadata())
+
+        self.update_levels()
 
         if self.debounce > 10:
             self.debounce = 0
@@ -236,6 +252,21 @@ class Camera:
 
     def set_tally(self, mask):
         self.ui.tally.set(mask)
+
+    def update_levels(self):
+        if self.audio_levels.empty():
+            return
+        data = self.audio_levels.get()
+        width = 256
+        height = 32
+
+        ctx = ImageDraw.Draw(self.levels)
+        ctx.rectangle((0, 0, width, height), fill=(0,0,0,255))
+        for i, chan in enumerate(data):
+            l = chan if chan > float('-inf') else -100
+            offset = int((l+100) * 2.54)
+            ctx.rectangle((0, 16*i, offset, 16+16*i), fill=(255,255,255,255))
+        self.drm.set_overlay(self.levels, output=self.output_ui, num=self.OVERLAY_AUDIO)
 
     def update_preview(self, request):
         ordering = []
