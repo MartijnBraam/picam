@@ -411,6 +411,8 @@ class Slider(Widget):
         slide_start = self.x + self.text_width + 10
         slide_len = self.x2 - 10 - slide_start
         pos = ((self.state.value - self.min.value) / (self.max.value - self.min.value)) * slide_len
+        if pos < 0:
+            pos = 0
         vcenter = self.y + (self.height / 2)
 
         bc = self.color_active if self.active else self.color_inactive
