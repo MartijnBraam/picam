@@ -147,8 +147,13 @@ class Camera:
 
         # Change the temperature range to the one in the calibration file
         awb = Picamera2.find_tuning_algo(self.cal, "rpi.awb")
-        self.ui.min_temp.set(awb["ct_curve"][0])
-        self.ui.max_temp.set(awb["ct_curve"][-3])
+        if "ct_curve" in awb:
+            self.ui.min_temp.set(awb["ct_curve"][0])
+            self.ui.max_temp.set(awb["ct_curve"][-3])
+        else:
+            print("No CT curve defined in sensor calibration file")
+            self.ui.min_temp.set(2500)
+            self.ui.max_temp.set(9000)
 
     def move_vu(self, in_settings):
         if not in_settings:
