@@ -36,6 +36,9 @@ class Camera:
         self.edid = None
         self.preview_w = 1
         self.preview_h = 1
+        self.cal = {}
+
+        self.load_tuning()
 
         self.config = Config("/boot/camera.ini")
 
@@ -92,7 +95,6 @@ class Camera:
         self.levels = queue.Queue()
         self.vu = Image.new("RGBA", (512, 32), "black")
 
-        self.cal = {}
         self.ui = UI(self.ui_size[0], self.ui_size[1], self, self.config, self.cam.camera_controls)
         self.ui_hdmi = UI(1920, 64, self, self.config, self.cam.camera_controls, hdmi=True)
 
@@ -114,6 +116,13 @@ class Camera:
             "histogram": 0,
         }
 
+    def load_tuning(self):
+        sensor_model = self.cam.camera_properties["Model"]
+        cal_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), "calibration")
+        self.cam.close()
+        self.cal = self.cam.load_tuning_file(f"{sensor_model}.json", dir=cal_dir)
+        self.cam = Picamera2(tuning=self.cal)
+
     def start(self):
         self.cam.start_preview(self.drm)
         self.cam.start()
@@ -129,11 +138,6 @@ class Camera:
         self.out_dsi.overlay_position(self.OVERLAY_HISTOGRAM, 64, self.config.monitor.mode[1] - 200, 256, 100)
         self.move_vu(False)
         self.out_hdmi.overlay_opacity(0, 0.0)
-
-        # Load calibration for WB data
-        sensor_model = self.cam.camera_properties["Model"]
-        cal_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), "calibration")
-        self.cal = self.cam.load_tuning_file(f"{sensor_model}.json", dir=cal_dir)
 
         # Set initial state to keep consistency with the API
         self.cam.set_controls({"AeEnable": True, "AwbEnable": True})
@@ -197,7 +201,7 @@ class Camera:
         bh = (height - 2) / len(data)
         for i, chan in enumerate(data):
             norm = chan / 16446
-            dB = 10 * math.log(norm+0.00001)
+            dB = 10 * math.log(norm + 0.00001)
             # TODO: Better curve fitting
             y = max(0.0, 1 + 0.03 * dB)
             val = int(y * (width - 2))
