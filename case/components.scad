@@ -25,6 +25,19 @@ module rsquare2(size, radius) {
   offset(r = radius, $fn=90) square([ x, y ], center = true);
 }
 
+module rcube(x, y, z, r) {
+    minkowski()
+    {
+        translate([r,r,r]) cube([x-2*r,y-2*r,z-2*r]);
+        sphere(r=r);
+    }
+}
+
+module ccube(pos) {
+    translate([0, 0, pos[2]/2])
+        cube(pos, center=true);
+}
+
 module shell(size, radius, wall=0) {
     linear_extrude(size.z, convexity=11)
         if (wall > 0) {
