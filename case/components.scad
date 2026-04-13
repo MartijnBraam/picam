@@ -25,11 +25,11 @@ module rsquare2(size, radius) {
   offset(r = radius, $fn=90) square([ x, y ], center = true);
 }
 
-module rcube(x, y, z, r) {
+module rcube(x, y, z, r, fn=$fn) {
     minkowski()
     {
         translate([r,r,r]) cube([x-2*r,y-2*r,z-2*r]);
-        sphere(r=r);
+        sphere(r=r, $fn=fn);
     }
 }
 
