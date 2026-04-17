@@ -39,6 +39,12 @@ module imx290() {
     }
 }
 
+module irglass() {
+    if($preview) {
+        color("#CCFFFF33")
+            cube([12, 12, 1.1]);
+    }
+}
 
 module insert(size, od, l) {
     translate([0,0,-0.1])

@@ -38,7 +38,8 @@ module ccube(pos) {
         cube(pos, center=true);
 }
 
-module shell(size, radius, wall=0) {
+module shell(size, radius, wall=0, center=true) {
+    translate([center ? 0 : size.x/2, center ? 0 : size.y/2])
     linear_extrude(size.z, convexity=11)
         if (wall > 0) {
             difference() {
