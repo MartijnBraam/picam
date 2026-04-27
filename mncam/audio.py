@@ -46,6 +46,8 @@ class AudioManager:
         return 40
 
     def get_routes(self, channel):
+        if not hasattr(self, '_left_mux'):
+            return []
         mux = self._left_mux
         if channel == 'R':
             mux = self._right_mux
