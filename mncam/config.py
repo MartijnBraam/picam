@@ -19,6 +19,7 @@ class MonitorConfig:
         self.exposure_helper_min = 61
         self.exposure_helper_max = 70
         self.backlight = 0
+        self.controls = 'live'
 
 
 class OutputConfig:

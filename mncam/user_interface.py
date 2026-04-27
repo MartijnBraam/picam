@@ -80,6 +80,10 @@ class UI:
         # HDMI overlay state
         self.hdmi_overlay = StateNumber(False)
 
+        # Recording mode controls
+        self.recording = StateNumber(False)
+        self.recording_time = StateNumber(0)
+
         # UI state
         self.tab_state = StateNumber("")
 
@@ -173,8 +177,13 @@ class UI:
         l.add_button(Layout.BOTTOMLEFT, 130, "Focus", self.focus_assist, lambda v: self.cam.enable_focus_assist(v))
         l.add_button(Layout.BOTTOMLEFT, 130, "Exp.", self.false_color, lambda v: self.cam.enable_false_color(v))
         l.add_widget(Layout.BOTTOMLEFT, GuidesButton(130, "Guides", self.guides, lambda v: self.cycle_guides()))
-        l.add_button(Layout.BOTTOMRIGHT, 180, "HDMI overlay", self.hdmi_overlay,
-                     lambda v: self.cam.enable_hdmi_overlay(v))
+
+        if self.config.monitor.controls == "live":
+            l.add_button(Layout.BOTTOMRIGHT, 180, "HDMI overlay", self.hdmi_overlay,
+                         lambda v: self.cam.enable_hdmi_overlay(v))
+        else:
+            l.add_button(Layout.BOTTOMRIGHT, 180, "Record", self.recording,
+                         lambda v: self.cam.enable_recording(v))
 
         l.page_state = self.tab_state
         # Empty panel which shows the guides when needed

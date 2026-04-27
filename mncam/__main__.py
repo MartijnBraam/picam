@@ -5,6 +5,7 @@ import threading
 import time
 import cv2
 import libcamera
+import requests
 from PIL import Image, ImageDraw
 
 from libcamera import ColorSpace
@@ -252,6 +253,14 @@ class Camera:
     def enable_hdmi_overlay(self, enable):
         self.ui.hdmi_overlay.set(enable)
         self.out_hdmi.overlay_opacity(0, 1.0 if enable else 0.0)
+
+    def enable_recording(self, enable):
+        self.ui.recording.set(enable)
+        self.ui.tally.set(enable)
+
+        requests.patch("http://127.0.0.1:9997/v3/config/paths/patch/cam", json={
+            "record": enable
+        })
 
     def enable_focus_zoom(self, enable):
         # The default 1280x800 monitor is at 0.66x scale, with 1.5x zoom it would archieve 1:1 pixel mapping
