@@ -4,8 +4,8 @@ import os.path
 import queue
 import socket
 
-from mncam.backlight import find_backlight, get_backlight_int, set_backlight
-from mncam.toolkit import StateNumber, Layout, GuidesButton, HandleInputs, TapEvent, DoubleTapEvent, VBox, Slider, \
+from c2.backlight import find_backlight, get_backlight_int, set_backlight
+from c2.toolkit import StateNumber, Layout, GuidesButton, HandleInputs, TapEvent, DoubleTapEvent, VBox, Slider, \
     ToggleRow, Guides, RadioRow, MoveEvent, ReleaseEvent, TextRow
 
 

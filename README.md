@@ -1,18 +1,13 @@
-# Raspberry Pi studio camera
+# ConfCam: A Pi based conference streaming camera
 
-This is the codebase for a broadcast/studio style camera build on top of the Raspberry Pi 4 and the HQ sensor.
+This is the codebase for a broadcast/studio style camera build on top of the Raspberry Pi 4 and various MIPI sensors.
 
 It's build as a Python application that configures libcamera and libdrm to play nicely with eachother and have a low
-latency camera feed going from the sensor to HDMI while showing an configuration interface on a secondary display.
-
-## Limitations
-
-* Max output is 1080p30 when the hardware H.264 encoder is used (and it cannot be disabled at the moment)
-* Higher resolutions are limited by the HQ sensor
+latency camera feed going from the sensor to HDMI while showing a configuration interface on a secondary display.
 
 ## Installation
 
-Use the `install.sh` script to install mncam on a minimal raspbian trixie installation.
+Use the `install.sh` script to install c2 on a minimal raspbian trixie installation.
 
 ## Configuration
 
@@ -41,14 +36,14 @@ bitrate = 10M
 
 ## Streaming
 
-Currently the application pushes the frames directly into the hardware video encoder and the result is streamed to
+Currently, the application pushes the frames directly into the hardware video encoder and the result is streamed to
 mediamtx running on the pi to allow clients to connect and view the stream. Using the webrtc viewer
-at http://0.0.0.0:8889/cam has the lowest latency but it also is accessible at :8890 for SRT, :8888/cam for HLS and
+at http://0.0.0.0:8889/cam has the lowest latency, but it also is accessible at :8890 for SRT, :8888/cam for HLS and
 :1935 for rtmp
 
 ## API
 
-The camera application exposes an unix socket for control at /tmp/sensor-control for realtime control. There's a golang
+The camera application exposes a unix socket for control at /tmp/sensor-control for realtime control. There's a golang
 based HTTP api server that works with this that I should publish Soon(tm)
 
 ## Bill of materials

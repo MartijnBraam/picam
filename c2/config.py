@@ -5,7 +5,7 @@ import configparser
 import humanfriendly
 import libcamera
 
-from mncam.backlight import find_backlight, get_backlight_int
+from c2.backlight import find_backlight, get_backlight_int
 
 
 class MonitorConfig:

@@ -14,13 +14,13 @@ from picamera2.encoders import H264Encoder
 from picamera2.outputs import PyavOutput
 import numpy as np
 
-from mncam.api import ControlAPI
-from mncam.audio import AudioManager
-from mncam.config import Config
-from mncam.drmoutput import DRMOutput
-from mncam.edid import check_edid
+from c2.api import ControlAPI
+from c2.audio import AudioManager
+from c2.config import Config
+from c2.drmoutput import DRMOutput
+from c2.edid import check_edid
 
-from mncam.user_interface import UI
+from c2.user_interface import UI
 
 
 class Camera:

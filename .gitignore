@@ -175,6 +175,7 @@ cython_debug/
 #.idea/
 
 /mncam_api
+/c2_api
 /pkg
 /workdir
 *.img.xz

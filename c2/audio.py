@@ -3,7 +3,7 @@ import subprocess
 
 import alsaaudio
 
-from mncam.config import Config
+from c2.config import Config
 
 
 class AudioManager:
