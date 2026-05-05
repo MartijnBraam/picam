@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
-	"mncam/lib/api"
-	"mncam/lib/ipc"
+	"c2/lib/api"
+	"c2/lib/ipc"
 )
 
 func main() {
