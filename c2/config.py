@@ -22,6 +22,14 @@ class MonitorConfig:
         self.controls = 'live'
 
 
+class AuxConfig:
+    def __init__(self):
+        self.output = "disabled"
+        self.mode = (1920, 1080)
+        self.framerate = 60
+        self.purpose = 'clean'
+
+
 class OutputConfig:
     def __init__(self):
         self.output = "HDMI-A-1"
@@ -74,6 +82,7 @@ class Config:
 
         self.monitor = MonitorConfig()
         self.output = OutputConfig()
+        self.aux = AuxConfig()
         self.encoder = EncoderConfig()
         self.sensor = SensorConfig()
         self.audio = AudioConfig()
@@ -86,8 +95,10 @@ class Config:
     def load_defaults(self):
         if self._has_dsi():
             self.monitor.output = "DSI-1"
+            self.aux.output = "HDMI-A-2"
         else:
             self.monitor.output = "HDMI-A-2"
+            self.aux.output = "disabled"
 
         bl = find_backlight(self)
         if bl is not None:
@@ -127,7 +138,7 @@ class Config:
             self.sensor.framerate = min(30, self.sensor.framerate)
 
     def save_config(self):
-        sections = ["sensor", "output", "monitor", "encoder", "audio"]
+        sections = ["sensor", "output", "monitor", "aux", "encoder", "audio"]
         parser = configparser.ConfigParser()
         for section in sections:
             parser.add_section(section)

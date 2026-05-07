@@ -42,6 +42,7 @@ class Connector:
             self.overlay_pos.append((0, 0, width, height))
 
         if width is not None and height is not None and rate is not None:
+            print(f"Setting mode on {self.name} to {width}x{height}@{rate}")
             mode = self._conn.get_default_mode()
             mode.hdisplay = width
             mode.vdisplay = height
@@ -54,7 +55,12 @@ class Connector:
             fmt = pykms.PixelFormat.XBGR8888
         elif pixel_format == "YUV420":
             fmt = pykms.PixelFormat.YUV420
-        self._plane = self._resman.reserve_overlay_plane(self._crtc, format=fmt)
+        self._plane = self._resman.reserve_primary_plane(self._crtc, format=fmt)
+        mode = self._conn.get_default_mode()
+        if self.name == "HDMI-A-1":
+            self.set_fps(50)
+
+        print(f"Start {self.name} at {width}x{height} mode is {mode.name}")
         for i in range(0, self.num_overlays):
             layer = self._resman.reserve_overlay_plane(self._crtc, format=pykms.PixelFormat.ABGR8888)
             layer.set_prop("pixel blend mode", 1)
@@ -79,6 +85,7 @@ class Connector:
         return idx < len(self.overlay)
 
     def set_fps(self, fps):
+        print(f"Setting mode on {self.name} to {self.width}x{self.height}@{fps}")
         mode = self._conn.get_default_mode()
         mode.hdisplay = self.width
         mode.vdisplay = self.height

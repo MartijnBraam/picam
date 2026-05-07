@@ -45,6 +45,7 @@ class Camera:
 
         self.output_hdmi = self.config.output.output
         self.output_ui = self.config.monitor.output
+        self.output_aux = self.config.aux.output
         self.ui_size = self.config.monitor.mode
 
         # Set initial camera mode and controls
@@ -70,8 +71,10 @@ class Camera:
         self.drm = DRMOutput(self.config.output.mode[0], self.config.output.mode[1])
         self.out_hdmi = self.drm.use_output(self.output_hdmi, self.config.output.mode[0], self.config.output.mode[1],
                                             self.config.output.framerate, 1)
-        self.out_dsi = self.drm.use_output(self.output_ui, self.ui_size[0], self.ui_size[1], None, 6)
-
+        self.out_dsi = self.drm.use_output(self.output_ui, self.ui_size[0], self.ui_size[1], 50, 6)
+        if self.config.aux.output != "disabled":
+            self.out_aux = self.drm.use_output(self.config.aux.output, self.config.aux.mode[0], self.config.aux.mode[1],
+                                               self.config.aux.framerate, 1)
         # Configure the hardware H.264 encoder
         if self.config.encoder.enabled:
             self.encoder = H264Encoder(self.config.encoder.bitrate_int)
@@ -98,6 +101,13 @@ class Camera:
 
         self.ui = UI(self.ui_size[0], self.ui_size[1], self, self.config, self.cam.camera_controls)
         self.ui_hdmi = UI(1920, 64, self, self.config, self.cam.camera_controls, hdmi=True)
+
+        def on_aux_paint(buf):
+            self.drm.set_overlay(buf, output=self.output_aux, num=0)
+
+        if self.config.aux.purpose != 'clean':
+            self.ui_aux = UI(1920, 64, self, self.config, self.cam.camera_controls, hdmi=True)
+            self.ui_aux.paint_hook = on_aux_paint
 
         def on_paint(buf):
             self.drm.set_overlay(buf, output=self.output_ui, num=self.OVERLAY_UI)
@@ -137,6 +147,9 @@ class Camera:
 
         self.out_hdmi.overlay_position(0, 0, 0, self.config.output.mode[0], 64)
         self.out_dsi.overlay_position(self.OVERLAY_HISTOGRAM, 64, self.config.monitor.mode[1] - 200, 256, 100)
+        if self.output_aux != 'disabled' and self.config.aux.purpose != 'clean':
+            self.out_aux.overlay_position(0, 0, 0, self.config.aux.mode[0], 64)
+
         self.move_vu(False)
         self.out_hdmi.overlay_opacity(0, 0.0)
 
@@ -221,6 +234,8 @@ class Camera:
         self.api.do_work()
         self.ui.update_state(self.cam.capture_metadata())
         self.ui_hdmi.update_state(self.cam.capture_metadata())
+        if self.config.aux.output != 'disabled' and self.config.aux.purpose != 'clean':
+            self.ui_aux.update_state(self.cam.capture_metadata())
         self.draw_audio()
 
         if self.debounce > 60:
@@ -374,6 +389,7 @@ class Camera:
     def set_fps(self, fps):
         self.ui.fps.set(fps)
         self.cam.set_controls({"FrameRate": fps})
+        self.out_dsi.set_fps(fps)
         self.out_hdmi.set_fps(fps)
         self.ui.min_shutter.set(fps)
 
