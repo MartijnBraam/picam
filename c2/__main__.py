@@ -71,7 +71,7 @@ class Camera:
         self.drm = DRMOutput(self.config.output.mode[0], self.config.output.mode[1])
         self.out_hdmi = self.drm.use_output(self.output_hdmi, self.config.output.mode[0], self.config.output.mode[1],
                                             self.config.output.framerate, 1)
-        self.out_dsi = self.drm.use_output(self.output_ui, self.ui_size[0], self.ui_size[1], 50, 6)
+        self.out_dsi = self.drm.use_output(self.output_ui, self.ui_size[0], self.ui_size[1], None, 6)
         if self.config.aux.output != "disabled":
             self.out_aux = self.drm.use_output(self.config.aux.output, self.config.aux.mode[0], self.config.aux.mode[1],
                                                self.config.aux.framerate, 1)

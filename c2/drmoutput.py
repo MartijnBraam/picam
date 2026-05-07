@@ -56,11 +56,7 @@ class Connector:
         elif pixel_format == "YUV420":
             fmt = pykms.PixelFormat.YUV420
         self._plane = self._resman.reserve_primary_plane(self._crtc, format=fmt)
-        mode = self._conn.get_default_mode()
-        if self.name == "HDMI-A-1":
-            self.set_fps(50)
 
-        print(f"Start {self.name} at {width}x{height} mode is {mode.name}")
         for i in range(0, self.num_overlays):
             layer = self._resman.reserve_overlay_plane(self._crtc, format=pykms.PixelFormat.ABGR8888)
             layer.set_prop("pixel blend mode", 1)
