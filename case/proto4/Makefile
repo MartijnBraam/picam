@@ -1,11 +1,14 @@
 .PHONY: all
-all: box case mounts
+all: box case mounts panels
 
 .PHONY: mounts
 mounts: mounts/p4_imx290.stl mounts/p4_mft.stl mounts/p4_cmount.stl
 
 .PHONY: box
 box: box_bottom.stl box_top.stl
+
+.PHONY: panels
+panels: panels/blank.stl panels/blank_short.stl panels/waveshare_5inch.stl panels/rear_io.stl panels/sensor.stl panels/cheese.stl
 
 .PHONY: case
 PROTO4_TARGETS=$(shell sed '/^module [a-z0-9_-]*().*make..\?me.*$$/!d;s/module //;s/().*/.stl/' case_proto4.scad)
@@ -32,4 +35,6 @@ clean:
 	rm -f *.deps
 	rm -f mounts/*.stl
 	rm -f mounts/*.deps
+	rm -f panels/*.stl
+	rm -f panels/*.deps
 	rm -f case_front.scad case_rear.scad
