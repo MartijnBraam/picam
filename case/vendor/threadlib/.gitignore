@@ -1,0 +1,9 @@
+# Apple
+.DS_Store
+
+# Editor
+.*.swp
+.vscode/
+
+# Build
+design/THREAD_TABLE.csv
