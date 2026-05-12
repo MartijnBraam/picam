@@ -176,6 +176,8 @@ class Camera:
             self.ui.min_temp.set(2500)
             self.ui.max_temp.set(9000)
 
+        self.update_gamma_curve()
+
     def move_vu(self, in_settings):
         if not in_settings:
             self.out_dsi.overlay_position(self.OVERLAY_AUDIO, self.config.monitor.mode[0] - 256 - 64,

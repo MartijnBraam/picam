@@ -1,5 +1,6 @@
 import ctypes
 import glob
+import math
 from fcntl import ioctl
 
 from c2.ioctl import VIDIOC_QUERYCAP, v4l2_capability, v4l2_ext_controls, v4l2_ext_control, V4L2_CTRL_CLASS_USER, \
@@ -15,6 +16,19 @@ basecurve = [
     (0.904758, 0.985699),
     (1.000000, 1.000000),
 ]
+
+
+def basecurve_arric4(points):
+    c = 95 / 1023
+    b = (1023 - 95) / 1023
+    ah = ((2 ** 18) - 16) * (3200 / 800)
+
+    result = []
+    for i in range(points):
+        Esensor = i / (points - 1)
+        E = min((math.log2(ah * Esensor + 64) - 6) / 14 * b + c, 1)
+        result.append((Esensor, E))
+    return result
 
 
 def sample_curve(curve, pos):
