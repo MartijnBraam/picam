@@ -192,7 +192,7 @@ module case_screws() {
    
 }
 
-module case_front() {
+module case_front() {  // `make` me"
     color("#373")
     difference() {
         // Outer shell
@@ -229,7 +229,7 @@ module case_front() {
     }
 }
 
-module case_rear() {
+module case_rear() { // `make` me"
     color("#555")
     difference() {
         // Outer shellw
@@ -277,6 +277,3 @@ module case_rear() {
     }
    
 }
-
-    //case_rear();
-    case_front();

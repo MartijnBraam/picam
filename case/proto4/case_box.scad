@@ -14,7 +14,7 @@ length=inner_length+(2*(thick));
 
 screw_offset=3.4;
 
-render_bottom=false;
+render_bottom=true;
 
 include<../lib/components.scad>;
 
@@ -67,6 +67,7 @@ module triangle(short_edge, length) {
 }
 
 module corner() {
+    
     difference() {
         cube([thick, thick, thick]);
         
@@ -80,6 +81,12 @@ module corner() {
         translate([-0.5, thick+0.5, -0.5])
         rotate([90, 0, 0])
             triangle(bevel+1, thick+1);
+        
+        translate([thick, thick, thick]) {
+        rotate([0, 54.8, 45])
+        translate([0, 0, -12.05])
+            cube([thick*2, thick, thick], center=true);
+        }
     }
 }
 
@@ -194,8 +201,16 @@ difference() {
         screwhole(2.5, 4.5, 8, 2);
     }
     
+    // Remove the bottom edge of the side panels to have a bit more clearance
+    // for the LCD panel, but leave a little nub on the bottom to make the filler
+    // panel not feel loose on the bottom
+    nub_width=10;
     translate([0, thick*2, thick])
-        cube([width, length-thick*4, thick]);
+        cube([width, (length-thick*4)/2-(nub_width/2), thick]);
+    translate([0, thick*2, thick+2])
+        cube([width, (length-thick*4), thick]);
+    translate([0,thick*2+(length-thick*4)/2+(nub_width/2), thick])
+        cube([width, (length-thick*4)/2-(nub_width/2), thick]);
 
 
     if (render_bottom) {
@@ -217,15 +232,15 @@ difference() {
 
     translate([inner_width/2, inner_length/2, 0])
         rotate([180, 0, 0])
-            insert(0, 7.15, 8);
+            insert(0, 7, 8);
     
     translate([inner_width/2, inner_length/3, 0])
         rotate([180, 0, 0])
-            insert(0, 7.15, 8);
+            insert(0, 7, 8);
 
     translate([inner_width/2, inner_length/3*2, 0])
         rotate([180, 0, 0])
-            insert(0, 7.15, 8);
+            insert(0, 7, 8);
 
 }
 }
